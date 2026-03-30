@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WarriorBots.AI — Code with AI. Build a Robot. Be a Warrior.</title>
+  <meta name="description" content="Browser-based AI coding platform for the Waldwick Warriors Robotics class. Chat with AI, write code, build and flash your robot — all from Chrome.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --navy: #1B2A4A;
+      --navy-deep: #111D35;
+      --navy-light: #243556;
+      --columbia: #7BA3C7;
+      --columbia-bright: #8FB8DC;
+      --light-blue: #A8C8E8;
+      --steel: #6B7280;
+      --silver: #E5E7EB;
+      --white: #FFFFFF;
+      --green: #22C55E;
+      --amber: #F59E0B;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--navy-deep);
+      color: var(--silver);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* Subtle animated background grid */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-image:
+        linear-gradient(rgba(123, 163, 199, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(123, 163, 199, 0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ─── Header ─── */
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: rgba(17, 29, 53, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(123, 163, 199, 0.1);
+      z-index: 100;
+      padding: 0 2rem;
+    }
+
+    .header-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .logo-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-icon {
+      width: 36px;
+      height: 36px;
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--white);
+      letter-spacing: -0.02em;
+    }
+
+    .logo-text .t-bots {
+      color: var(--columbia);
+    }
+
+    .logo-text .t-ai {
+      color: var(--light-blue);
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      color: var(--columbia);
+      font-weight: 500;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--amber);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* ─── Hero ─── */
+    .hero {
+      position: relative;
+      z-index: 1;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 2rem 80px;
+    }
+
+    .helmet-icon {
+      width: 100px;
+      height: 100px;
+      margin-bottom: 2rem;
+      animation: float 6s ease-in-out infinite;
+      filter: drop-shadow(0 0 30px rgba(123, 163, 199, 0.3));
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 4.5rem);
+      font-weight: 800;
+      color: var(--white);
+      line-height: 1.1;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 .accent {
+      background: linear-gradient(135deg, var(--columbia), var(--light-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero .tagline {
+      font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+      color: var(--columbia);
+      font-weight: 500;
+      margin-bottom: 1rem;
+      letter-spacing: 0.02em;
+    }
+
+    .hero .subtitle {
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      color: var(--steel);
+      max-width: 600px;
+      margin-bottom: 2.5rem;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: rgba(123, 163, 199, 0.1);
+      border: 1px solid rgba(123, 163, 199, 0.2);
+      border-radius: 100px;
+      font-size: 0.9rem;
+      color: var(--columbia);
+      font-weight: 500;
+    }
+
+    /* ─── Features ─── */
+    .features {
+      position: relative;
+      z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 60px 2rem 100px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: rgba(27, 42, 74, 0.5);
+      border: 1px solid rgba(123, 163, 199, 0.1);
+      border-radius: 16px;
+      padding: 32px;
+      transition: border-color 0.3s, transform 0.3s;
+    }
+
+    .feature-card:hover {
+      border-color: rgba(123, 163, 199, 0.25);
+      transform: translateY(-2px);
+    }
+
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 8px;
+    }
+
+    .feature-card p {
+      font-size: 0.95rem;
+      color: var(--steel);
+      line-height: 1.5;
+    }
+
+    /* ─── Screenshots Section ─── */
+    .screenshots {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 2rem 100px;
+    }
+
+    .screenshots h2 {
+      text-align: center;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .screenshots .section-sub {
+      text-align: center;
+      color: var(--steel);
+      font-size: 1.05rem;
+      margin-bottom: 3rem;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .screenshot-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 48px;
+    }
+
+    .screenshot-item {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+
+    .screenshot-item.reverse {
+      direction: rtl;
+    }
+
+    .screenshot-item.reverse > * {
+      direction: ltr;
+    }
+
+    .screenshot-text h3 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 12px;
+    }
+
+    .screenshot-text p {
+      font-size: 1rem;
+      color: var(--steel);
+      line-height: 1.6;
+    }
+
+    .screenshot-text ul {
+      list-style: none;
+      margin-top: 16px;
+    }
+
+    .screenshot-text ul li {
+      padding: 4px 0;
+      color: var(--silver);
+      font-size: 0.95rem;
+    }
+
+    .screenshot-text ul li::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: var(--columbia);
+      border-radius: 50%;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    .screenshot-frame {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(123, 163, 199, 0.15);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 40px rgba(123, 163, 199, 0.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .screenshot-frame:hover {
+      transform: scale(1.02);
+      box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5), 0 0 60px rgba(123, 163, 199, 0.08);
+    }
+
+    .screenshot-frame img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    /* ─── How It Works ─── */
+    .how-it-works {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 2rem 100px;
+    }
+
+    .how-it-works h2 {
+      text-align: center;
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 3rem;
+      letter-spacing: -0.02em;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      position: relative;
+    }
+
+    .steps::before {
+      content: '';
+      position: absolute;
+      left: 28px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--columbia), rgba(123, 163, 199, 0.1));
+    }
+
+    .step {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      padding: 24px 0;
+    }
+
+    .step-num {
+      flex-shrink: 0;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--navy);
+      border: 2px solid var(--columbia);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--columbia);
+      position: relative;
+      z-index: 2;
+    }
+
+    .step-content h3 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 4px;
+    }
+
+    .step-content p {
+      color: var(--steel);
+      font-size: 0.95rem;
+    }
+
+    .step-content code {
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(123, 163, 199, 0.1);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      color: var(--columbia);
+    }
+
+    /* ─── Tech Stack ─── */
+    .tech {
+      position: relative;
+      z-index: 1;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 2rem 100px;
+      text-align: center;
+    }
+
+    .tech h2 {
+      font-size: clamp(1.8rem, 4vw, 2.5rem);
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+    }
+
+    .tech .section-sub {
+      color: var(--steel);
+      font-size: 1.05rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .tech-pills {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .tech-pill {
+      padding: 8px 18px;
+      background: rgba(27, 42, 74, 0.6);
+      border: 1px solid rgba(123, 163, 199, 0.15);
+      border-radius: 100px;
+      font-size: 0.9rem;
+      color: var(--silver);
+      font-weight: 500;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ─── CTA / Footer ─── */
+    .cta {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 60px 2rem 40px;
+      border-top: 1px solid rgba(123, 163, 199, 0.08);
+    }
+
+    .cta h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 700;
+      color: var(--white);
+      margin-bottom: 0.75rem;
+    }
+
+    .cta p {
+      color: var(--steel);
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .cta-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 28px;
+      background: linear-gradient(135deg, var(--columbia), var(--light-blue));
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--navy-deep);
+      text-decoration: none;
+    }
+
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 24px 2rem 40px;
+      font-size: 0.85rem;
+      color: rgba(107, 114, 128, 0.6);
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 768px) {
+      .screenshot-item,
+      .screenshot-item.reverse {
+        grid-template-columns: 1fr;
+        direction: ltr;
+        gap: 24px;
+      }
+
+      .screenshot-text { order: 1; }
+      .screenshot-frame { order: 2; }
+
+      .features {
+        grid-template-columns: 1fr;
+      }
+
+      .steps::before {
+        left: 20px;
+      }
+
+      .step-num {
+        width: 40px;
+        height: 40px;
+        font-size: 1rem;
+      }
+    }
+
+    /* ─── Spartan Helmet SVG ─── */
+    .helmet-svg {
+      fill: var(--columbia);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="header-inner">
+      <div class="logo-group">
+        <svg class="logo-icon" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Right-facing Spartan helmet matching Waldwick Warriors logo -->
+          <!-- Crest / plume -->
+          <path d="M38 12 C42 6, 52 4, 58 8 C62 10, 66 8, 72 6 C76 5, 82 6, 85 10 L68 18 C60 22, 50 22, 42 18 Z" fill="#7BA3C7" stroke="#1B2A4A" stroke-width="1.5"/>
+          <!-- Helmet dome -->
+          <path d="M30 45 C30 22, 45 12, 65 14 C78 15, 85 25, 85 40 L85 52 C85 58, 82 62, 78 65 L72 70 L68 72 L60 74 C52 74, 42 70, 38 65 L30 55 Z" fill="#7BA3C7" stroke="#1B2A4A" stroke-width="2.5"/>
+          <!-- Face opening / guard area -->
+          <path d="M60 38 C68 38, 78 40, 82 44 L84 50 C84 55, 80 60, 75 63 L68 66 L60 68 C55 68, 50 65, 48 62 L46 56 L48 46 C50 40, 55 38, 60 38 Z" fill="#1B2A4A" stroke="#1B2A4A" stroke-width="1"/>
+          <!-- Eye slit -->
+          <path d="M54 48 L80 44" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round"/>
+          <!-- Nose guard -->
+          <path d="M58 48 L56 62 L60 66" stroke="#7BA3C7" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <!-- Chin guard curve -->
+          <path d="M60 66 C64 68, 70 67, 74 64" stroke="#7BA3C7" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <!-- Helmet back detail line -->
+          <path d="M35 35 C36 28, 42 20, 52 18" stroke="#A8C8E8" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+          <!-- Neck guard -->
+          <path d="M30 55 C28 60, 28 68, 32 75 L40 82 C44 85, 50 86, 55 84 L50 74 C44 72, 38 68, 36 62 Z" fill="#7BA3C7" stroke="#1B2A4A" stroke-width="2"/>
+        </svg>
+        <div class="logo-text">Warrior<span class="t-bots">Bots</span><span class="t-ai">.AI</span></div>
+      </div>
+      <div class="header-status">
+        <div class="status-dot"></div>
+        Launching Soon
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <svg class="helmet-icon" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+      <!-- Right-facing Spartan helmet matching Waldwick Warriors logo -->
+      <!-- Crest / plume -->
+      <path d="M38 12 C42 6, 52 4, 58 8 C62 10, 66 8, 72 6 C76 5, 82 6, 85 10 L68 18 C60 22, 50 22, 42 18 Z" fill="#7BA3C7" stroke="#1B2A4A" stroke-width="1.5"/>
+      <!-- Helmet dome -->
+      <path d="M30 45 C30 22, 45 12, 65 14 C78 15, 85 25, 85 40 L85 52 C85 58, 82 62, 78 65 L72 70 L68 72 L60 74 C52 74, 42 70, 38 65 L30 55 Z" fill="#7BA3C7" stroke="#1B2A4A" stroke-width="2.5"/>
+      <!-- Face opening / guard area -->
+      <path d="M60 38 C68 38, 78 40, 82 44 L84 50 C84 55, 80 60, 75 63 L68 66 L60 68 C55 68, 50 65, 48 62 L46 56 L48 46 C50 40, 55 38, 60 38 Z" fill="#1B2A4A" stroke="#1B2A4A" stroke-width="1"/>
+      <!-- Eye slit -->
+      <path d="M54 48 L80 44" stroke="#E5E7EB" stroke-width="2.5" stroke-linecap="round"/>
+      <!-- Nose guard -->
+      <path d="M58 48 L56 62 L60 66" stroke="#7BA3C7" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- Chin guard curve -->
+      <path d="M60 66 C64 68, 70 67, 74 64" stroke="#7BA3C7" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Helmet back detail line -->
+      <path d="M35 35 C36 28, 42 20, 52 18" stroke="#A8C8E8" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+      <!-- Neck guard -->
+      <path d="M30 55 C28 60, 28 68, 32 75 L40 82 C44 85, 50 86, 55 84 L50 74 C44 72, 38 68, 36 62 Z" fill="#7BA3C7" stroke="#1B2A4A" stroke-width="2"/>
+    </svg>
+    <p class="tagline">Code with AI. Build a Robot. Be a Warrior.</p>
+    <h1>The AI-Powered<br><span class="accent">Robotics Lab</span></h1>
+    <p class="subtitle">A browser-based coding platform built for the Waldwick Warriors Robotics class. Students chat with AI, write real code, and flash it to their robots — all from Chrome.</p>
+    <div class="badge">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M8 5v3.5l2.5 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      Coming Spring 2026
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F916;</div>
+      <h3>AI Coding Partner</h3>
+      <p>Students describe what they want their robot to do in plain English. The AI writes TypeScript code, explains every line, and encourages experimentation.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F4BB;</div>
+      <h3>Real Code Editor</h3>
+      <p>Full Monaco editor (the engine behind VS Code) with syntax highlighting, auto-complete, and auto-formatting. Multi-file projects that grow with the student.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x26A1;</div>
+      <h3>One-Click Build &amp; Flash</h3>
+      <p>Hit "Build & Flash" and code compiles in seconds. WebUSB flashes the hex file directly to the micro:bit — no drag-and-drop, no downloads, no friction.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F50D;</div>
+      <h3>Teacher Dashboard</h3>
+      <p>Admin panel lets the coach see every student's workspace, chat history, and build status in real time. Spot who's stuck, troubleshoot live, review progress.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F4BE;</div>
+      <h3>Persistent Sessions</h3>
+      <p>Code and chat history are saved across every session. Students pick up exactly where they left off — no lost work, ever.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">&#x1F6E1;&#xFE0F;</div>
+      <h3>Safe &amp; Focused</h3>
+      <p>Topic-constrained AI stays on robotics. All conversations logged. No accounts, no personal data — just a username and class code.</p>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section class="screenshots">
+    <h2>Built for Young Engineers</h2>
+    <p class="section-sub">A purpose-built interface that's approachable for first-time coders, but powerful enough to build real robot programs.</p>
+
+    <div class="screenshot-grid">
+      <div class="screenshot-item">
+        <div class="screenshot-text">
+          <h3>Simple, Branded Login</h3>
+          <p>No accounts to create, no passwords to remember. Students type their name and class code — handed out on paper — and they're in.</p>
+          <ul>
+            <li>Username + class code authentication</li>
+            <li>No email or personal info required</li>
+            <li>Session-based, 8-hour expiry</li>
+          </ul>
+        </div>
+        <div class="screenshot-frame">
+          <img src="images/mockup-login.png" alt="WarriorBots.AI login page with Spartan helmet logo, username and class code fields" loading="lazy">
+        </div>
+      </div>
+
+      <div class="screenshot-item reverse">
+        <div class="screenshot-text">
+          <h3>Chat + Code, Side by Side</h3>
+          <p>The main workspace pairs an AI chat panel with a full code editor. Students describe what they want, the AI writes the code, and one click applies it to the editor.</p>
+          <ul>
+            <li>AI explains every code change in plain language</li>
+            <li>"Apply" button inserts code and highlights changes</li>
+            <li>Multi-file tab bar grows with the project</li>
+            <li>Build output with direct WebUSB flashing</li>
+          </ul>
+        </div>
+        <div class="screenshot-frame">
+          <img src="images/mockup-main-app.png" alt="WarriorBots.AI main workspace showing AI chat on the left and Monaco code editor on the right" loading="lazy">
+        </div>
+      </div>
+
+      <div class="screenshot-item">
+        <div class="screenshot-text">
+          <h3>Teacher Admin Panel</h3>
+          <p>The coach gets a bird's-eye view of every student. Click into any workspace to see their files, full chat history across all sessions, and build results.</p>
+          <ul>
+            <li>Online/offline status for each student</li>
+            <li>Full chat history viewer with session selector</li>
+            <li>Edit student files for live troubleshooting</li>
+            <li>Activity log across the whole class</li>
+          </ul>
+        </div>
+        <div class="screenshot-frame">
+          <img src="images/mockup-admin.png" alt="WarriorBots.AI admin panel showing student list, chat history, and code viewer" loading="lazy">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <h2>First Class in 5 Steps</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-content">
+          <h3>Open Chrome, go to warriorbots.ai</h3>
+          <p>That's it. No software to install, no apps to download. Works on any laptop or Chromebook.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-content">
+          <h3>Log in with your name and class code</h3>
+          <p>The teacher hands out credentials on paper. Type your name, enter the code, click <code>Enter the Lab</code>.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-content">
+          <h3>Tell the AI what you want your robot to do</h3>
+          <p>"Make my robot drive forward and flash red when it sees an obstacle." The AI writes the code and explains what it does.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-content">
+          <h3>Click Build &amp; Flash</h3>
+          <p>Code compiles in ~2 seconds. Chrome connects to the micro:bit via USB and flashes the program directly.</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">5</div>
+        <div class="step-content">
+          <h3>Watch your robot come alive</h3>
+          <p>The micro:bit reboots and your Cutebot starts executing. Tweak, rebuild, flash again. Iterate until it's perfect.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tech Stack -->
+  <section class="tech">
+    <h2>Built With</h2>
+    <p class="section-sub">Modern tools, zero-cost hosting, real engineering practices.</p>
+    <div class="tech-pills">
+      <span class="tech-pill">FastAPI</span>
+      <span class="tech-pill">React</span>
+      <span class="tech-pill">TypeScript</span>
+      <span class="tech-pill">Monaco Editor</span>
+      <span class="tech-pill">Tailwind CSS</span>
+      <span class="tech-pill">MakeCode / pxt</span>
+      <span class="tech-pill">WebUSB</span>
+      <span class="tech-pill">GCP Cloud Run</span>
+      <span class="tech-pill">Docker</span>
+      <span class="tech-pill">Claude AI</span>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta">
+    <h2>Waldwick Warriors Robotics Corp</h2>
+    <p>An after-school program where students learn to code with AI and build real robots.</p>
+    <div class="cta-badge">
+      <svg width="20" height="18" viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+        <path d="M38 12 C42 6, 52 4, 58 8 C62 10, 66 8, 72 6 C76 5, 82 6, 85 10 L68 18 C60 22, 50 22, 42 18 Z" fill="#1B2A4A"/>
+        <path d="M30 45 C30 22, 45 12, 65 14 C78 15, 85 25, 85 40 L85 52 C85 58, 82 62, 78 65 L72 70 L68 72 L60 74 C52 74, 42 70, 38 65 L30 55 Z" fill="#1B2A4A"/>
+        <path d="M30 55 C28 60, 28 68, 32 75 L40 82 C44 85, 50 86, 55 84 L50 74 C44 72, 38 68, 36 62 Z" fill="#1B2A4A"/>
+      </svg>
+      Platform Launching Spring 2026
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2026 WarriorBots.AI &middot; Waldwick, New Jersey
+  </footer>
+
+</body>
+</html>
