@@ -95,6 +95,12 @@
       text-transform: uppercase;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
     .header-cta {
       display: inline-flex;
       align-items: center;
@@ -110,6 +116,17 @@
     .header-cta:hover {
       transform: translateY(-1px);
       box-shadow: 0 4px 20px rgba(123, 163, 199, 0.3);
+    }
+
+    .header-cta.secondary {
+      background: transparent;
+      border: 1px solid rgba(123, 163, 199, 0.4);
+      color: var(--columbia);
+    }
+    .header-cta.secondary:hover {
+      background: rgba(123, 163, 199, 0.1);
+      border-color: var(--columbia);
+      box-shadow: none;
     }
 
     /* ─── Hero ─── */
@@ -577,6 +594,7 @@
       .learn-list { grid-template-columns: 1fr; }
 
       .header-cta { display: none; }
+      .header-cta.secondary { display: inline-flex; padding: 5px 12px; font-size: 0.75rem; }
       .info-card { padding: 22px 16px; }
 
       .details, .learn, .screenshots, .info-section, .faq, .cta {
@@ -595,7 +613,10 @@
         <img src="images/warrior-logo.png" alt="Waldwick Warriors" class="logo-img">
         <div class="logo-text"><span class="brand-warrior">Warrior</span><span class="brand-bots">Bots</span><span class="brand-dot-ai">.ai</span></div>
       </div>
-      <a href="https://docs.google.com/forms/d/e/1FAIpQLScjLbZmY45b3TtGHlGXNnrgWSrEzbJGVsdoo9ypo06wpWRPFw/viewform" class="header-cta" target="_blank" rel="noopener">Register Now</a>
+      <div class="header-actions">
+        <a href="https://app.warriorbots.ai" class="header-cta secondary">Launch App &rarr;</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLScjLbZmY45b3TtGHlGXNnrgWSrEzbJGVsdoo9ypo06wpWRPFw/viewform" class="header-cta" target="_blank" rel="noopener">Register Now</a>
+      </div>
     </div>
   </header>
 
