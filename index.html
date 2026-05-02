@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>WarriorBots.AI — Vibe Code a Robot | Waldwick Warriors Robotics</title>
-  <meta name="description" content="6-week Saturday morning robotics program for kids in Waldwick, NJ. Students learn to code with AI, build robots in Python, and take their robot home. May 2 - June 13, 2026.">
+  <meta name="description" content="6-week Saturday morning robotics program for kids in Waldwick, NJ. Spring 2026 season is underway. Join the interest list to be notified when the next season opens.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
@@ -210,6 +210,13 @@
       color: var(--gold);
     }
 
+    .badge-closed {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.35);
+      color: #F87171;
+      font-weight: 600;
+    }
+
     .btn-primary {
       display: inline-flex;
       align-items: center;
@@ -227,6 +234,25 @@
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 30px rgba(123, 163, 199, 0.35);
+    }
+
+    .btn-interest {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 32px;
+      background: linear-gradient(135deg, var(--amber), var(--gold));
+      border-radius: 100px;
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy-deep);
+      text-decoration: none;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.25);
+    }
+    .btn-interest:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
     }
 
     .hero-note {
@@ -615,7 +641,7 @@
       </div>
       <div class="header-actions">
         <a href="https://app.warriorbots.ai" class="header-cta secondary">Launch App &rarr;</a>
-        <a href="https://docs.google.com/forms/d/e/1FAIpQLScjLbZmY45b3TtGHlGXNnrgWSrEzbJGVsdoo9ypo06wpWRPFw/viewform" class="header-cta" target="_blank" rel="noopener">Register Now</a>
+        <a href="https://docs.google.com/forms/d/e/1FAIpQLSdyHr-TUl0mWdmg9fwz4vCSZKQKqVngKa_xB0HdWjrfwckuag/viewform?usp=dialog" class="header-cta" target="_blank" rel="noopener" style="background: linear-gradient(135deg, var(--amber), var(--gold)); color: var(--navy-deep);">Interest for Next Season</a>
       </div>
     </div>
   </header>
@@ -627,12 +653,15 @@
     <h1>Vibe Code a <span class="accent">Robot</span></h1>
     <p class="subtitle">A 6-week Saturday morning program where students learn to code with AI and build real robots they take home. No experience needed.</p>
     <div class="hero-badges">
+      <div class="badge badge-closed">&#x1F512; Registration Closed &mdash; Spring 2026 Season Underway</div>
+    </div>
+    <div class="hero-badges">
       <div class="badge">May 2 &ndash; June 13, 2026</div>
       <div class="badge">Saturday Mornings</div>
       <div class="badge badge-gold">Every student keeps their robot</div>
     </div>
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLScjLbZmY45b3TtGHlGXNnrgWSrEzbJGVsdoo9ypo06wpWRPFw/viewform" class="btn-primary" target="_blank" rel="noopener">Register Now &mdash; $200</a>
-    <p class="hero-note">Sibling discount: $100 each additional child &middot; All proceeds benefit Waldwick Warriors Robotics</p>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdyHr-TUl0mWdmg9fwz4vCSZKQKqVngKa_xB0HdWjrfwckuag/viewform?usp=dialog" class="btn-interest" target="_blank" rel="noopener">&#x1F514; Get Notified for Next Season</a>
+    <p class="hero-note">Spring 2026 is full &mdash; drop your email to hear about the next season</p>
   </section>
 
   <!-- Hardware Showcase -->
@@ -668,15 +697,7 @@
         <p><span class="highlight">Waldwick Volunteer Ambulance Corp</span><br>
         Waldwick, New Jersey</p>
       </div>
-      <div class="detail-card">
-        <div class="icon">&#x1F4B0;</div>
-        <h3>Registration Fee</h3>
-        <p><span class="highlight">$200</span> per student<br>
-        Siblings: <span class="highlight">$100</span> each additional child<br>
-        Includes the robot kit every student takes home.<br>
-        Payment via Zelle to <span class="highlight">Ohmwarriorslego@gmail.com</span><br>
-        All proceeds benefit Waldwick Warriors Robotics.</p>
-      </div>
+
       <div class="detail-card">
         <div class="icon">&#x1F4BB;</div>
         <h3>What to Bring</h3>
@@ -805,7 +826,7 @@
       </div>
       <div class="faq-item">
         <h4>Do they really keep the robot?</h4>
-        <p>Yes. Every student gets their own Cutebot kit (robot + micro:bit) included in the fee. It's theirs to take home.</p>
+        <p>Yes. Every student gets their own Cutebot kit (robot + micro:bit). It's theirs to take home.</p>
       </div>
       <div class="faq-item">
         <h4>What kind of laptop do they need?</h4>
@@ -815,23 +836,16 @@
         <h4>What about the May 23 weekend?</h4>
         <p>No session on May 23 (Memorial Day weekend). Sessions run May 2, 9, 16, 30, June 6, and 13. Note that May 2 and May 30 run earlier (9:00&ndash;10:30 AM); the other four sessions are 10:30 AM&ndash;Noon.</p>
       </div>
-      <div class="faq-item">
-        <h4>Is there a sibling discount?</h4>
-        <p>Yes! The first child is $200 and each additional sibling is just $100. Each child still gets their own robot kit to keep.</p>
-      </div>
-      <div class="faq-item">
-        <h4>Where does the money go?</h4>
-        <p>All proceeds benefit Waldwick Warriors Robotics. The fee covers the robot kit, materials, and supports the broader robotics program.</p>
-      </div>
+
     </div>
   </section>
 
-  <!-- Register CTA -->
+  <!-- Interest CTA -->
   <section class="cta" id="register">
-    <h2>Ready to Build a Robot?</h2>
-    <p>6 Saturdays. Real code. Real robots. Real battles. Spots are limited.</p>
-    <a href="https://docs.google.com/forms/d/e/1FAIpQLScjLbZmY45b3TtGHlGXNnrgWSrEzbJGVsdoo9ypo06wpWRPFw/viewform" class="btn-primary" target="_blank" rel="noopener">Register Now &mdash; $200</a>
-    <p class="cta-note">You'll be taken to a short registration form.<br>Payment via Zelle to Ohmwarriorslego@gmail.com<br><a href="images/flyer.png" target="_blank">View the program flyer</a></p>
+    <h2>Interested in a Future Season?</h2>
+    <p>Spring 2026 is underway and registration is closed. Fill out the interest form and we'll let you know when the next season opens.</p>
+    <a href="https://docs.google.com/forms/d/e/1FAIpQLSdyHr-TUl0mWdmg9fwz4vCSZKQKqVngKa_xB0HdWjrfwckuag/viewform?usp=dialog" class="btn-interest" target="_blank" rel="noopener">&#x1F514; Join the Interest List</a>
+    <p class="cta-note">Takes 30 seconds &mdash; just your email, grade, and Saturday availability.<br><a href="images/flyer.png" target="_blank">View the 2026 program flyer</a></p>
   </section>
 
   <footer>
