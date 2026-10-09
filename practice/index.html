@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Robotics Practice Scheduler</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+/* Doodle-style practice picker. Palette: Waldwick Warriors navy / columbia blue (same as the Ramapo scrimmage signup). */
+:root {
+  --bg: #F3F7FB; --panel: #FFFFFF; --fg: #1B2A4A; --muted: #5A6A86; --line: #D5E0EC;
+  --accent: #1B2A4A; --accent-ink: #FFFFFF; --columbia: #4F7FAA; --wash: #E6EFF8;
+  --go: #15803D; --go-wash: #DCFCE7; --ok: #B45309; --ok-wash: #FEF3C7; --no: #9F1239; --no-wash: #FFE4E6;
+  --past: #EBEEF2;
+  --display: "Chakra Petch", "Avenir Next Condensed", "Arial Narrow", sans-serif;
+  --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg: #0E1628; --panel: #16223A; --fg: #E6EEF7; --muted: #9AADC6; --line: #2A3B5A;
+  --accent: #7BA3C7; --accent-ink: #0E1628; --columbia: #A8C8E8; --wash: #1F3558;
+  --go: #4ADE80; --go-wash: #14352A; --ok: #FBBF24; --ok-wash: #3A2E10; --no: #FB7185; --no-wash: #3B1622;
+  --past: #121B2E; color-scheme: dark;
+} }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--fg); font: 16px/1.45 var(--body); }
+.wrap { max-width: 860px; margin: 0 auto; padding: 28px 16px 64px; display: grid; gap: 26px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; letter-spacing: .01em; text-wrap: balance; }
+h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); line-height: 1.1; }
+h2 { font-size: 1.05rem; text-transform: uppercase; letter-spacing: .08em; }
+.eyebrow { font: 600 .78rem/1 var(--display); text-transform: uppercase; letter-spacing: .14em; color: var(--columbia); }
+.sub { color: var(--muted); margin: 6px 0 0; }
+header { display: grid; gap: 10px; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: .95rem; }
+.facts b { color: var(--fg); }
+section { display: grid; gap: 12px; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+
+button { font: inherit; cursor: pointer; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip {
+  --c: var(--columbia);
+  font: 700 .98rem var(--display); letter-spacing: .02em;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 999px;
+  border: 2px solid var(--line); background: var(--panel); color: var(--fg);
+}
+.chip:hover { border-color: var(--c); }
+.chip[aria-pressed="true"] { border-color: var(--c); background: var(--c); color: var(--panel); }
+.chip.ghost { border-style: dashed; color: var(--muted); }
+.chip.ghost[aria-pressed="true"] { border-style: solid; border-color: var(--muted); background: var(--muted); color: var(--panel); }
+.chip.small { font-size: .88rem; padding: 4px 11px; }
+.dot { width: 10px; height: 10px; border-radius: 50%; background: var(--c); }
+.chip[aria-pressed="true"] .dot { background: var(--panel); }
+.btn { border: 0; border-radius: 10px; padding: 9px 16px; background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.btn.quiet { background: transparent; color: var(--columbia); padding: 6px 8px; }
+.btn.quiet:hover { text-decoration: underline; }
+
+form.family { display: grid; gap: 12px; }
+form.family label { display: grid; gap: 4px; font-weight: 700; }
+form.family small { color: var(--muted); font-weight: 400; }
+form.family input[type=text] { font: inherit; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); }
+form.family .row { display: flex; gap: 10px; align-items: center; }
+
+.summary { display: grid; gap: 6px; }
+.summary li { margin: 0; }
+.summary ul { margin: 0; padding-left: 20px; }
+
+.week { display: grid; gap: 10px; }
+.week h3 { font-size: .85rem; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+.slot { background: var(--panel); border: 1px solid var(--line); border-left: 6px solid var(--line); border-radius: 12px; padding: 12px 14px; display: grid; gap: 8px; }
+.slot.great, .slot.confirmed { border-left-color: var(--go); }
+.slot.ok { border-left-color: var(--ok); }
+.slot.short { border-left-color: var(--line); }
+.slot.cancelled { opacity: .6; }
+.slot.past { background: var(--past); opacity: .7; }
+.slot.confirmed { box-shadow: 0 0 0 2px var(--go) inset; }
+.slot-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.when { font: 700 1.1rem var(--display); }
+.badge { font: 700 .78rem var(--display); text-transform: uppercase; letter-spacing: .08em; padding: 3px 9px; border-radius: 999px; }
+.badge.great, .badge.confirmed { background: var(--go-wash); color: var(--go); }
+.badge.ok { background: var(--ok-wash); color: var(--ok); }
+.badge.short { background: var(--wash); color: var(--muted); }
+.badge.cancelled { background: var(--no-wash); color: var(--no); }
+.note { font-size: .85rem; color: var(--columbia); font-weight: 700; }
+.who { font-size: .93rem; color: var(--muted); display: grid; gap: 2px; }
+.who b { color: var(--fg); }
+.mine { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 6px; border-top: 1px dashed var(--line); }
+.mine .label { font-size: .85rem; color: var(--muted); margin-right: 4px; }
+.actions { display: flex; gap: 4px; margin-left: auto; }
+
+.toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 700; max-width: 90vw; }
+.toast.err { background: var(--no); color: #fff; }
+.preview { background: var(--ok-wash); color: var(--ok); border-radius: 10px; padding: 8px 12px; font-size: .9rem; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Waldwick Warriors Robotics</div>
+    <h1>Practice Scheduler</h1>
+    <div class="facts">
+      <span><b>Thu 6 PM</b> · <b>Fri 6 PM</b> · <b>Sun 1 PM</b></span>
+      <span><b>Oct 15 – Nov 20</b>, before the Nov 22 competition</span>
+      <span>In the <b id="host-name">host family's</b> basement</span>
+    </div>
+    <p class="sub">Tap the people from your family who can make each session. A practice is a <b>go</b> when the basement is free, at least <b>one adult</b> is there and at least <b>two kids</b> come (three or more is ideal). Not everyone has to make every one.</p>
+    <div class="preview" id="preview" hidden>Preview mode: no backend configured, so changes are saved only in this browser.</div>
+  </header>
+
+  <section>
+    <h2>Who are you?</h2>
+    <div class="chips" id="families"></div>
+    <form class="family panel" id="family-form" hidden>
+      <label>Family name <small>what everyone will see, e.g. "Julia's family"</small>
+        <input type="text" name="name" required maxlength="40"></label>
+      <label>Adults <small>first names, comma separated</small>
+        <input type="text" name="adults" maxlength="120"></label>
+      <label>Kids on the team <small>first names, comma separated</small>
+        <input type="text" name="kids" maxlength="120"></label>
+      <label class="row" id="host-row"><input type="checkbox" name="host"> Practices are in our basement (host family)</label>
+      <div class="row"><button class="btn" type="submit">Save</button><button class="btn quiet" type="button" id="family-cancel">Cancel</button></div>
+    </form>
+  </section>
+
+  <section id="summary-section">
+    <h2>The plan so far</h2>
+    <div class="panel summary" id="summary"></div>
+  </section>
+
+  <section>
+    <h2>Sessions</h2>
+    <div id="slots" class="week"></div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+// ---- config ---------------------------------------------------------------
+// The Apps Script web app /exec URL (see README.md). Empty = preview mode on localStorage.
+const API_URL = '';
+const FIRST_DAY = '2026-10-15';
+const LAST_DAY = '2026-11-20';
+const TIMES = { 4: '6:00 PM', 5: '6:00 PM', 0: '1:00 PM' };   // getUTCDay → start time (Thu, Fri, Sun)
+const NOTES = { '2026-11-15': 'Don Bosco Scrimmage is this day' };
+const MIN_KIDS = 2, GREAT_KIDS = 3, MIN_ADULTS = 1;
+const COLORS = ['#E0662E', '#6D5BD0', '#1E9E8C', '#D23F86', '#D9A21B', '#4F7FAA', '#8C6A4A'];
+
+// ---- state ----------------------------------------------------------------
+let S = { families: [], responses: [], sessions: [] };
+let me = localStorage.getItem('practice.family') || '';
+let editing = null;   // null = form closed, '' = new family, id = editing that family
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const today = new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD in local time
+
+function slots() {
+  const out = [];
+  for (let d = new Date(FIRST_DAY + 'T00:00:00Z'); d <= new Date(LAST_DAY + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + 1)) {
+    if (d.getUTCDay() in TIMES) out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
+}
+const fmt = (slot, opts) => new Date(slot + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', ...opts });
+const when = slot => `${fmt(slot, { weekday: 'short', month: 'short', day: 'numeric' })} · ${TIMES[new Date(slot + 'T00:00:00Z').getUTCDay()]}`;
+const host = () => S.families.find(f => f.host);
+const famColor = id => COLORS[Math.max(0, S.families.findIndex(f => f.id === id)) % COLORS.length];
+const response = (slot, fam) => S.responses.find(r => r.slot === slot && r.family === fam);
+const status = slot => (S.sessions.find(s => s.slot === slot) || {}).status || 'open';
+
+/** Roll up one slot: who's coming, and whether it's a go. */
+function tally(slot) {
+  const adults = [], kids = [], waiting = [];
+  for (const f of S.families) {
+    const r = response(slot, f.id);
+    if (!r) { waiting.push(f.name); continue; }
+    for (const p of r.people) (f.adults.includes(p) ? adults : f.kids.includes(p) ? kids : []).push(p);
+  }
+  const h = host(), hr = h && response(slot, h.id);
+  const basement = hr ? hr.basement : null;   // null = host hasn't answered
+  const need = [];
+  if (basement !== true) need.push(basement === false ? 'basement not free' : "host's OK");
+  if (adults.length < MIN_ADULTS) need.push('an adult');
+  if (kids.length < MIN_KIDS) need.push(`${MIN_KIDS - kids.length} more kid${MIN_KIDS - kids.length > 1 ? 's' : ''}`);
+  const st = status(slot);
+  const level = st !== 'open' ? st : need.length ? 'short' : kids.length >= GREAT_KIDS ? 'great' : 'ok';
+  return { adults, kids, waiting, basement, need, level, status: st };
+}
+const LABEL = { confirmed: 'Confirmed', cancelled: 'Cancelled', great: 'Go: 3+ kids', ok: 'Go: 2 kids' };
+
+// ---- backend --------------------------------------------------------------
+async function load() {
+  S = API_URL ? await (await fetch(API_URL)).json() : Preview.state();
+  render();
+}
+
+async function send(req) {
+  try {
+    const res = API_URL
+      ? await (await fetch(API_URL, { method: 'POST', body: JSON.stringify(req) })).json()   // text/plain: no CORS preflight
+      : Preview.apply(req);
+    if (res.error) throw new Error(res.error);
+    S = res;
+    render();
+    return true;
+  } catch (e) {
+    toast(e.message || 'Something went wrong — try again.', true);
+    load();
+    return false;
+  }
+}
+
+// Preview mode mirrors Code.gs closely enough to click through the UI with no backend.
+const Preview = {
+  state() { return JSON.parse(localStorage.getItem('practice.preview') || '{"families":[],"responses":[],"sessions":[]}'); },
+  apply(req) {
+    const s = this.state();
+    const slug = n => n.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    if (req.action === 'saveFamily') {
+      const id = req.id || slug(req.name);
+      if (!req.id && s.families.some(f => f.id === id)) return { error: `"${req.name}" is already on the list — pick it instead.` };
+      if (req.host && s.families.some(f => f.host && f.id !== id)) return { error: 'Another family is already the host.' };
+      const f = { id, name: req.name, adults: req.adults, kids: req.kids, host: !!req.host };
+      s.families = s.families.filter(x => x.id !== id).concat(f);
+    } else if (req.action === 'respond') {
+      s.responses = s.responses.filter(r => !(r.slot === req.slot && r.family === req.family))
+        .concat({ slot: req.slot, family: req.family, people: req.people, basement: !!req.basement });
+    } else if (req.action === 'setStatus') {
+      s.sessions = s.sessions.filter(x => x.slot !== req.slot).concat({ slot: req.slot, status: req.status });
+    }
+    localStorage.setItem('practice.preview', JSON.stringify(s));
+    return s;
+  },
+};
+
+// ---- actions --------------------------------------------------------------
+function pick(id) { me = id; localStorage.setItem('practice.family', id); editing = null; render(); }
+
+function togglePerson(slot, name) {
+  const r = response(slot, me) || { people: [], basement: false };
+  const people = r.people.includes(name) ? r.people.filter(p => p !== name) : r.people.concat(name);
+  send({ action: 'respond', slot, family: me, people, basement: r.basement });
+}
+function toggleBasement(slot) {
+  const r = response(slot, me) || { people: [], basement: false };
+  send({ action: 'respond', slot, family: me, people: r.people, basement: !r.basement });
+}
+function cantMake(slot) { send({ action: 'respond', slot, family: me, people: [], basement: false }); }
+function setStatus(slot, st) { send({ action: 'setStatus', slot, status: st }); }
+
+function openForm(id) {
+  editing = id;
+  const f = S.families.find(x => x.id === id) || { name: '', adults: [], kids: [], host: false };
+  const form = $('#family-form');
+  form.name.value = f.name; form.adults.value = f.adults.join(', '); form.kids.value = f.kids.join(', ');
+  form.host.checked = f.host;
+  $('#host-row').hidden = !!host() && !f.host;
+  render();
+  form.name.focus();
+}
+
+$('#family-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = e.target, split = s => s.split(',').map(x => x.trim()).filter(Boolean);
+  const req = { action: 'saveFamily', id: editing || undefined, name: form.name.value.trim(),
+    adults: split(form.adults.value), kids: split(form.kids.value), host: form.host.checked };
+  if (!req.adults.length && !req.kids.length) return toast('Add at least one adult or kid.', true);
+  if (await send(req)) {
+    const id = editing || S.families.find(f => f.name === req.name)?.id;
+    pick(id);
+  }
+});
+$('#family-cancel').addEventListener('click', () => { editing = null; render(); });
+
+// ---- render ---------------------------------------------------------------
+function render() {
+  $('#preview').hidden = !!API_URL;
+  if (me && !S.families.some(f => f.id === me)) me = '';
+  const h = host();
+  $('#host-name').textContent = h ? `${h.name}'s` : "host family's";
+
+  $('#families').innerHTML = S.families.map(f =>
+    `<button class="chip" style="--c:${famColor(f.id)}" aria-pressed="${f.id === me}" data-pick="${esc(f.id)}"><span class="dot"></span>${esc(f.name)}${f.host ? ' 🏠' : ''}</button>`
+  ).join('') +
+    (me ? `<button class="chip ghost" data-edit="${esc(me)}">Edit our family</button>` : '') +
+    `<button class="chip ghost" data-edit="">+ Add your family</button>`;
+  $('#family-form').hidden = editing === null;
+
+  const all = slots();
+  const upcoming = all.filter(s => s >= today);
+  const confirmed = upcoming.filter(s => status(s) === 'confirmed');
+  const best = upcoming.filter(s => ['great', 'ok'].includes(tally(s).level))
+    .sort((a, b) => tally(b).kids.length - tally(a).kids.length || a.localeCompare(b)).slice(0, 5);
+  const notYet = S.families.filter(f => !all.some(s => response(s, f.id)));
+  $('#summary').innerHTML = [
+    confirmed.length ? `<div><b>Confirmed (${confirmed.length}):</b><ul>${confirmed.map(s => `<li>${when(s)}, ${tally(s).kids.length} kids</li>`).join('')}</ul></div>`
+      : '<div>Nothing confirmed yet.</div>',
+    best.length ? `<div><b>Best open options:</b><ul>${best.map(s => `<li>${when(s)}: ${tally(s).kids.join(', ')} with ${tally(s).adults.join(', ')}</li>`).join('')}</ul></div>` : '',
+    notYet.length ? `<div><b>Haven't filled anything in:</b> ${notYet.map(f => esc(f.name)).join(', ')}</div>` : '',
+    S.families.length ? '' : '<div>No families yet. Tap <b>+ Add your family</b> to start (the host family should tick the basement box).</div>',
+  ].join('');
+
+  const mine = S.families.find(f => f.id === me);
+  let html = '', week = '';
+  for (const slot of all) {
+    const d = new Date(slot + 'T00:00:00Z'), mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+    const wk = mon.toISOString().slice(0, 10);
+    if (wk !== week) { week = wk; html += `<h3>Week of ${fmt(wk, { month: 'short', day: 'numeric' })}</h3>`; }
+    const t = tally(slot), past = slot < today;
+    const badge = LABEL[t.level] || `Needs ${t.need.join(', ')}`;
+    const r = mine && response(slot, mine.id);
+    html += `<div class="slot ${t.level}${past ? ' past' : ''}">
+      <div class="slot-head">
+        <span class="when">${when(slot)}</span>
+        <span class="badge ${t.level}">${esc(badge)}</span>
+        ${NOTES[slot] ? `<span class="note">${esc(NOTES[slot])}</span>` : ''}
+        ${past ? '' : `<span class="actions">${
+          t.status === 'open' ? `<button class="btn quiet" data-status="confirmed" data-slot="${slot}">Confirm</button><button class="btn quiet" data-status="cancelled" data-slot="${slot}">Call off</button>`
+          : `<button class="btn quiet" data-status="open" data-slot="${slot}">Reopen</button>`}</span>`}
+      </div>
+      <div class="who">
+        <span>🏠 Basement: <b>${t.basement === true ? 'free' : t.basement === false ? 'not free' : '?'}</b></span>
+        <span>Adults (${t.adults.length}): <b>${esc(t.adults.join(', ') || '–')}</b></span>
+        <span>Kids (${t.kids.length}): <b>${esc(t.kids.join(', ') || '–')}</b></span>
+        ${t.waiting.length ? `<span>Waiting on: ${esc(t.waiting.join(', '))}</span>` : ''}
+      </div>
+      ${mine && !past ? `<div class="mine"><span class="label">${esc(mine.name)}:</span>
+        ${mine.host ? `<button class="chip small" style="--c:var(--go)" aria-pressed="${!!(r && r.basement)}" data-basement="${slot}">🏠 Basement free</button>` : ''}
+        ${mine.adults.concat(mine.kids).map(p => `<button class="chip small" style="--c:${famColor(mine.id)}" aria-pressed="${!!(r && r.people.includes(p))}" data-person="${esc(p)}" data-slot="${slot}">${esc(p)}</button>`).join('')}
+        <button class="chip small ghost" aria-pressed="${!!(r && !r.people.length && !r.basement)}" data-cant="${slot}">None of us</button>
+      </div>` : ''}
+    </div>`;
+  }
+  $('#slots').innerHTML = html;
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.pick !== undefined) pick(b.dataset.pick);
+  else if (b.dataset.edit !== undefined) openForm(b.dataset.edit);
+  else if (b.dataset.person !== undefined) togglePerson(b.dataset.slot, b.dataset.person);
+  else if (b.dataset.basement) toggleBasement(b.dataset.basement);
+  else if (b.dataset.cant) cantMake(b.dataset.cant);
+  else if (b.dataset.status) setStatus(b.dataset.slot, b.dataset.status);
+});
+
+let toastTimer;
+function toast(msg, err) {
+  const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 4000);
+}
+
+// Other families' taps show up within a minute, or as soon as you come back to the tab.
+document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
+setInterval(() => { if (!document.hidden && editing === null) load(); }, 60000);
+load().catch(() => toast('Could not load the schedule — refresh to retry.', true));
+</script>
+</body>
+</html>
