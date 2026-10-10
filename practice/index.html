@@ -109,7 +109,7 @@ form.family .row { display: flex; gap: 10px; align-items: center; }
       <span><b>Oct 15 – Nov 20</b>, before the Nov 22 competition</span>
       <span>In the <b id="host-name">host family's</b> basement</span>
     </div>
-    <p class="sub">Tap the people from your family who can make each session. A practice is a <b>go</b> when the basement is free, at least <b>one adult</b> is there and at least <b>two kids</b> come (three or more is ideal). Not everyone has to make every one.</p>
+    <p class="sub">Tap the people from your family who can make each session. A practice is a <b>go</b> when the basement is free, at least <b>one supervising adult</b> is there and at least <b>two kids</b> come (three or more is ideal). Not everyone has to make every one.</p>
     <div class="preview" id="preview" hidden>Preview mode: no backend configured, so changes are saved only in this browser.</div>
   </header>
 
@@ -117,9 +117,9 @@ form.family .row { display: flex; gap: 10px; align-items: center; }
     <h2>Who are you?</h2>
     <div class="chips" id="families"></div>
     <form class="family panel" id="family-form" hidden>
-      <label>Family name <small>what everyone will see, e.g. "Julia's family"</small>
+      <label>Family name <small>what everyone will see, e.g. "Anderson"</small>
         <input type="text" name="name" required maxlength="40"></label>
-      <label>Adults <small>first names, comma separated</small>
+      <label>Adults who can supervise a practice <small>first names, comma separated; leave blank if none of you will</small>
         <input type="text" name="adults" maxlength="120"></label>
       <label>Kids on the team <small>first names, comma separated</small>
         <input type="text" name="kids" maxlength="120"></label>

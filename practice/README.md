@@ -1,6 +1,6 @@
 # Robotics Practice Scheduler
 
-Doodle-style picker for home practices before the Nov 22 competition: Thu 6 PM, Fri 6 PM or Sun 1 PM, Oct 15 – Nov 20, in the host family's basement. Each family picks itself from the list (no sign-in), taps which adults and kids can make each session, and the page rolls it up. A session is a **go** when the host marks the basement free, at least one adult is coming and at least two kids are coming (three or more shows as the better option). Anyone can **Confirm** or **Call off** a session; the top of the page lists confirmed sessions and the best open options.
+Doodle-style picker for home practices before the Nov 22 competition: Thu 6 PM, Fri 6 PM or Sun 1 PM, Oct 15 – Nov 20, in the host family's basement. Each family picks itself from the list (no sign-in), taps which supervising adults and kids can make each session (a family can list kids only), and the page rolls it up. A session is a **go** when the host marks the basement free, at least one adult is coming and at least two kids are coming (three or more shows as the better option). Anyone can **Confirm** or **Call off** a session; the top of the page lists confirmed sessions and the best open options.
 
 Live at `https://warriorbots.ai/practice/` (GitHub Pages, this repo). `noindex`, unlinked from the landing page.
 
