@@ -1,6 +1,6 @@
 # Capybara Warriors Practice Scheduler
 
-Doodle-style picker for the Capybara Warriors (FLL Founders team, Waldwick Warriors Robotics) practices in the Goretsky basement before the Nov 21 qualifier. Rob lists only the days the basement is free. Each family picks itself from a fixed list (no sign-in) and taps which supervising adults and kids can make each session. A session is a **go** with at least one supervising adult and at least two kids (three or more shows as the better option). Anyone can **Confirm** or **Call off** a session; the top of the page lists confirmed sessions, the best open options, and who hasn't answered.
+Doodle-style picker for the Capybara Warriors (FLL Founders team, Waldwick Warriors Robotics) practices in the Goretsky basement before the Nov 21 qualifier. Rob lists only the days the basement is free. Each family picks itself from a fixed list (no sign-in) and taps which supervising adults and kids can make each session. A session is a **go** with at least one supervising adult and at least two kids (three or more shows as the better option). Only the Goretsky family (`ORGANIZER` in `index.html`) sees **Confirm** / **Call off**; the top of the page lists confirmed sessions, the best open options, and who hasn't answered.
 
 Live at `https://warriorbots.ai/practice/` (GitHub Pages, this repo). `noindex`, unlinked from the landing page. Not a WarriorBots page: it lives here only because this repo is already on GitHub Pages.
 

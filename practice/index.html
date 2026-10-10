@@ -140,6 +140,7 @@ button { font: inherit; cursor: pointer; }
 // The Apps Script web app /exec URL (see README.md). Empty = preview mode on localStorage.
 const API_URL = 'https://script.google.com/macros/s/AKfycbw_aPYkaZpQKx19PUUmqCJWxJt4DW3wG_yLYuwAvEJWSRVgRDy8_4oIe-ODlh4gJj66ZQ/exec';
 const LOGO = '../images/warrior-logo.png';   // icon "warrior" in the sheet
+const ORGANIZER = 'goretsky';   // family id that sees Confirm / Call off / Reopen (the host family)
 const MIN_KIDS = 2, GREAT_KIDS = 3, MIN_ADULTS = 1;
 const COLORS = ['#E0662E', '#6D5BD0', '#1E9E8C', '#D23F86', '#D9A21B', '#4F7FAA', '#8C6A4A'];
 
@@ -328,7 +329,7 @@ function render() {
         <span class="badge ${t.level}">${esc(badge)}</span>
         ${sl.kind === 'regular' && t.need.length ? `<span class="badge short">Needs ${esc(t.need.join(', '))}</span>` : ''}
         ${sl.note ? `<span class="note">${esc(sl.note)}</span>` : ''}
-        ${past || sl.kind !== 'practice' ? '' : `<span class="actions">${
+        ${past || sl.kind !== 'practice' || me !== ORGANIZER ? '' : `<span class="actions">${
           t.status === 'open' ? `<button class="btn quiet" data-status="confirmed" data-slot="${slot}">Confirm</button><button class="btn quiet" data-status="cancelled" data-slot="${slot}">Call off</button>`
           : `<button class="btn quiet" data-status="open" data-slot="${slot}">Reopen</button>`}</span>`}
       </div>
