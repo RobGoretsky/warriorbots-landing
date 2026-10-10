@@ -283,7 +283,7 @@ function render() {
   $('#preview').hidden = !!API_URL;
   if (me && !S.families.some(f => f.id === me)) me = '';
   const h = host();
-  $('#host-name').textContent = h ? `${h.name}'s` : "host family's";
+  $('#host-name').textContent = h ? `${h.name} family's` : "host family's";
 
   $('#families').innerHTML = S.families.map(f =>
     `<button class="chip" style="--c:${famColor(f.id)}" aria-pressed="${f.id === me}" data-pick="${esc(f.id)}"><span class="dot"></span>${esc(f.name)}${f.host ? ' 🏠' : ''}</button>`
@@ -313,7 +313,7 @@ function render() {
     const wk = mon.toISOString().slice(0, 10);
     if (wk !== week) { week = wk; html += `<h3>Week of ${fmt(wk, { month: 'short', day: 'numeric' })}</h3>`; }
     const t = tally(slot), past = slot < today;
-    const badge = LABEL[t.level] || `Needs ${t.need.join(', ')}`;
+    const badge = LABEL[t.level] || (t.basement === false ? 'Basement not free' : `Needs ${t.need.join(', ')}`);
     const r = mine && response(slot, mine.id);
     html += `<div class="slot ${t.level}${past ? ' past' : ''}">
       <div class="slot-head">
