@@ -81,7 +81,13 @@ button { font: inherit; cursor: pointer; }
 .icon { font-size: 1.2rem; align-self: center; }
 .slot.past { background: var(--past); opacity: .7; }
 .slot.confirmed { box-shadow: 0 0 0 2px var(--go) inset; }
-.slot-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
+.slot { scroll-margin-top: 12px; }
+.slot.flash { animation: flash 1.4s ease-out; }
+@keyframes flash { from { box-shadow: 0 0 0 4px var(--columbia); } to { box-shadow: 0 0 0 0 transparent; } }
+/* Fixed rows (head, note, badge, who, taps, actions) so a badge changing length never moves anything else. */
+.slot-head { display: flex; align-items: center; gap: 8px; }
+.badge-row { display: flex; }
+.badge { white-space: nowrap; }
 .when { font: 700 1.1rem var(--display); }
 .badge { font: 700 .78rem var(--display); text-transform: uppercase; letter-spacing: .08em; padding: 3px 9px; border-radius: 999px; }
 .badge.great, .badge.confirmed { background: var(--go-wash); color: var(--go); }
@@ -91,9 +97,34 @@ button { font: inherit; cursor: pointer; }
 .note { font-size: .85rem; color: var(--columbia); font-weight: 700; }
 .who { font-size: .93rem; color: var(--muted); display: grid; gap: 2px; }
 .who b { color: var(--fg); }
+.who .waiting { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }   /* one line always, so answering never reflows the card */
 .mine { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding-top: 6px; border-top: 1px dashed var(--line); }
 .mine .label { font-size: .85rem; color: var(--muted); margin-right: 4px; }
-.actions { display: flex; gap: 4px; margin-left: auto; }
+.actions { display: flex; justify-content: flex-end; gap: 4px; border-top: 1px dashed var(--line); padding-top: 4px; }
+
+.cal { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.cal-h { text-align: center; font: 700 .75rem var(--display); text-transform: uppercase; letter-spacing: .1em; color: var(--muted); }
+.cal-day { position: relative; min-height: 56px; padding: 6px 7px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); font: inherit; text-align: left; display: grid; align-content: start; gap: 1px; }
+button.cal-day { cursor: pointer; }
+.cal-day .n { font: 700 1rem/1.1 var(--display); }
+.cal-day .s { font-size: .72rem; color: var(--muted); font-weight: 700; }
+.cal-day .ci { position: absolute; top: 5px; right: 6px; font-size: .95rem; line-height: 1; }
+.cal-day .ci img { width: 18px; height: 18px; object-fit: contain; }
+.cal-day.great, .cal-day.confirmed { background: var(--go-wash); border-color: var(--go); }
+.cal-day.great .s, .cal-day.confirmed .s { color: var(--go); }
+.cal-day.ok { background: var(--ok-wash); border-color: var(--ok); }
+.cal-day.ok .s { color: var(--ok); }
+.cal-day.regular { background: var(--wash); border-color: var(--columbia); }
+.cal-day.event { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.cal-day.event .s { color: var(--accent-ink); }
+.cal-day.off, .cal-day.cancelled { background: var(--past); }
+.cal-day.cancelled .n { text-decoration: line-through; }
+.cal-day.none { background: transparent; border-style: dashed; opacity: .45; }
+.cal-day.past { opacity: .5; }
+.cal-day.todo::after { content: ""; position: absolute; right: 7px; bottom: 7px; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); }
+.cal-legend { font-size: .8rem; color: var(--muted); display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.cal-legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 4px; vertical-align: -1px; border: 1px solid var(--line); }
+.to-cal { position: fixed; right: 14px; bottom: 16px; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--panel); border: 1px solid var(--line); box-shadow: 0 2px 8px rgba(0,0,0,.15); text-decoration: none; font-size: 1.3rem; }
 
 .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 700; max-width: 90vw; }
 .saving { position: fixed; right: 12px; top: 12px; background: var(--panel); color: var(--muted); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; font-size: .85rem; }
@@ -122,6 +153,12 @@ button { font: inherit; cursor: pointer; }
     <div class="chips" id="add-adult" hidden><button class="chip ghost" data-add-adult>+ Add a parent who can supervise</button></div>
   </section>
 
+  <section id="cal-section">
+    <h2>Calendar</h2>
+    <div class="cal" id="cal"></div>
+    <div class="cal-legend" id="cal-legend"></div>
+  </section>
+
   <section>
     <h2>The plan so far</h2>
     <div class="panel summary" id="summary"></div>
@@ -133,6 +170,7 @@ button { font: inherit; cursor: pointer; }
   </section>
 </div>
 <div class="toast" id="toast" hidden></div>
+<a class="to-cal" href="#cal-section" aria-label="Back to calendar">📅</a>
 <div class="saving" id="saving" hidden>Saving…</div>
 
 <script>
@@ -168,7 +206,7 @@ function tally(slot) {
     for (const p of r.people) (f.adults.includes(p) ? adults : f.kids.includes(p) ? kids : []).push(p);
   }
   const need = [];
-  if (adults.length < MIN_ADULTS) need.push('an adult');
+  if (adults.length < MIN_ADULTS) need.push(`${MIN_ADULTS - adults.length} adult`);
   if (kids.length < MIN_KIDS) need.push(`${MIN_KIDS - kids.length} more kid${MIN_KIDS - kids.length > 1 ? 's' : ''}`);
   const st = slotOf(slot).status || 'open', kind = slotOf(slot).kind || 'practice';
   const level = kind !== 'practice' ? kind : st !== 'open' ? st : need.length ? 'short' : kids.length >= GREAT_KIDS ? 'great' : 'ok';
@@ -302,7 +340,7 @@ function render() {
   const notYet = S.families.filter(f => !upcoming.some(s => response(s, f.id)));
   $('#summary').innerHTML = [
     !all.length ? '<div>No practice days posted yet.</div>'
-      : confirmed.length ? `<div><b>Confirmed (${confirmed.length}):</b><ul>${confirmed.map(s => `<li>${when(s)}, ${tally(s).kids.length} kids</li>`).join('')}</ul></div>`
+      : confirmed.length ? `<div><b>Confirmed (${confirmed.length}):</b><ul>${confirmed.map(s => `<li>${when(s)}, ${tally(s).kids.length} kid${tally(s).kids.length === 1 ? '' : 's'}</li>`).join('')}</ul></div>`
       : '<div>Nothing confirmed yet.</div>',
     events.length ? `<div><b>Events:</b><ul>${events.map(s => `<li>${when(s)}: ${esc(slotOf(s).note || '')}</li>`).join('')}</ul></div>` : '',
     best.length ? `<div><b>Best open options:</b><ul>${best.map(s => `<li>${when(s)}: ${esc(tally(s).kids.join(', '))} with ${esc(tally(s).adults.join(', '))}</li>`).join('')}</ul></div>` : '',
@@ -311,40 +349,75 @@ function render() {
 
   let html = '', week = '';
   for (const slot of all) {
-    const d = new Date(slot + 'T00:00:00Z'), mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
-    const wk = mon.toISOString().slice(0, 10);
+    const wk = weekOf(slot);
     if (wk !== week) { week = wk; html += `<h3>Week of ${fmt(wk, { month: 'short', day: 'numeric' })}</h3>`; }
     const t = tally(slot), past = slot < today, sl = slotOf(slot);
+    const note = sl.note ? `<span class="note">${esc(sl.note)}</span>` : '';
     if (!answerable(slot)) {
-      html += `<div class="slot ${t.level}${past ? ' past' : ''}"><div class="slot-head">${icon(slot)}
-        <span class="when">${when(slot)}</span><span class="badge ${t.level}">${LABEL[t.level]}</span>
-        ${sl.note ? `<span class="note">${esc(sl.note)}</span>` : ''}</div></div>`;
+      html += `<div class="slot ${t.level}${past ? ' past' : ''}" id="s-${slot}">
+        <div class="slot-head">${icon(slot)}<span class="when">${when(slot)}</span></div>
+        ${note}<div class="badge-row"><span class="badge ${t.level}">${LABEL[t.level]}</span></div></div>`;
       continue;
     }
-    const badge = LABEL[t.level] || `Needs ${t.need.join(', ')}`;
+    const badge = sl.kind === 'regular' ? (t.need.length ? `Regular · needs ${t.need.join(', ')}` : 'Regular practice')
+      : LABEL[t.level] || `Needs ${t.need.join(', ')}`;
     const r = mine && response(slot, mine.id);
-    html += `<div class="slot ${t.level}${past ? ' past' : ''}">
-      <div class="slot-head">
-        ${icon(slot)}<span class="when">${when(slot)}</span>
-        <span class="badge ${t.level}">${esc(badge)}</span>
-        ${sl.kind === 'regular' && t.need.length ? `<span class="badge short">Needs ${esc(t.need.join(', '))}</span>` : ''}
-        ${sl.note ? `<span class="note">${esc(sl.note)}</span>` : ''}
-        ${past || sl.kind !== 'practice' || me !== ORGANIZER ? '' : `<span class="actions">${
-          t.status === 'open' ? `<button class="btn quiet" data-status="confirmed" data-slot="${slot}">Confirm</button><button class="btn quiet" data-status="cancelled" data-slot="${slot}">Call off</button>`
-          : `<button class="btn quiet" data-status="open" data-slot="${slot}">Reopen</button>`}</span>`}
-      </div>
+    html += `<div class="slot ${t.level}${past ? ' past' : ''}" id="s-${slot}">
+      <div class="slot-head">${icon(slot)}<span class="when">${when(slot)}</span></div>
+      ${note}
+      <div class="badge-row"><span class="badge ${sl.kind === 'regular' && t.need.length ? 'short' : t.level}">${esc(badge)}</span></div>
       <div class="who">
         <span>Adults (${t.adults.length}): <b>${esc(t.adults.join(', ') || '–')}</b></span>
         <span>Kids (${t.kids.length}): <b>${esc(t.kids.join(', ') || '–')}</b></span>
-        ${t.waiting.length ? `<span>Waiting on: ${esc(t.waiting.join(', '))}</span>` : ''}
+        <span class="waiting">Waiting on: ${esc(t.waiting.join(', ') || 'no one')}</span>
       </div>
       ${mine && !past ? `<div class="mine"><span class="label">${esc(mine.name)}:</span>
         ${mine.adults.concat(mine.kids).map(p => `<button class="chip small" style="--c:${famColor(mine.id)}" aria-pressed="${!!(r && r.people.includes(p))}" data-person="${esc(p)}" data-slot="${slot}">${esc(p)}</button>`).join('')}
         <button class="chip small ghost" aria-pressed="${!!(r && !r.people.length)}" data-cant="${slot}">None of us</button>
       </div>` : ''}
+      ${past || sl.kind !== 'practice' || me !== ORGANIZER ? '' : `<div class="actions">${
+        t.status === 'open' ? `<button class="btn quiet" data-status="confirmed" data-slot="${slot}">Confirm</button><button class="btn quiet" data-status="cancelled" data-slot="${slot}">Call off</button>`
+        : `<button class="btn quiet" data-status="open" data-slot="${slot}">Reopen</button>`}</div>`}
     </div>`;
   }
   $('#slots').innerHTML = html;
+  renderCalendar(all, mine);
+}
+
+const iso = d => d.toISOString().slice(0, 10);
+const weekOf = slot => { const d = new Date(slot + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return iso(d); };
+const CAL_SHORT = { great: 'Go 3+', ok: 'Go', confirmed: '✓ On', cancelled: 'Off', short: 'Open', regular: 'Regular', event: 'Event', off: '' };
+
+/** Thu–Sun grid (Mon–Wed never have practice) covering every week with a posted day; tap a day to jump to its card. */
+function renderCalendar(all, mine) {
+  if (!all.length) { $('#cal').innerHTML = ''; $('#cal-legend').innerHTML = ''; return; }
+  let html = ['Thu', 'Fri', 'Sat', 'Sun'].map(d => `<div class="cal-h">${d}</div>`).join('');
+  let prevMonth = '';
+  for (let w = new Date(weekOf(all[0]) + 'T00:00:00Z'); iso(w) <= weekOf(all[all.length - 1]); w.setUTCDate(w.getUTCDate() + 7)) {
+    for (const off of [3, 4, 5, 6]) {
+      const d = new Date(w); d.setUTCDate(w.getUTCDate() + off);
+      const day = iso(d), month = fmt(day, { month: 'short' });
+      const label = month !== prevMonth ? `${month} ${d.getUTCDate()}` : d.getUTCDate();
+      prevMonth = month;
+      const sl = S.slots.find(x => x.slot === day);
+      if (!sl) { html += `<div class="cal-day none${day < today ? ' past' : ''}"><span class="n">${label}</span></div>`; continue; }
+      const t = tally(day);
+      const todo = mine && answerable(day) && day >= today && !response(day, mine.id);
+      html += `<button class="cal-day ${t.level}${day < today ? ' past' : ''}${todo ? ' todo' : ''}" data-jump="${day}">
+        <span class="n">${label}</span><span class="s">${CAL_SHORT[t.level] ?? ''}</span>${sl.icon ? `<span class="ci">${icon(day)}</span>` : ''}</button>`;
+    }
+  }
+  $('#cal').innerHTML = html;
+  $('#cal-legend').innerHTML = `<span><i style="background:var(--go-wash);border-color:var(--go)"></i>Go</span>
+    <span><i style="background:var(--ok-wash);border-color:var(--ok)"></i>Go with 2 kids</span>
+    <span><i style="background:var(--accent)"></i>Event</span>${mine ? `<span><i style="background:var(--ok);border-radius:50%"></i>${esc(mine.name)} hasn't answered</span>` : ''}`;
+}
+
+function jump(slot) {
+  const el = document.getElementById('s-' + slot);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
 }
 
 document.addEventListener('click', e => {
@@ -355,6 +428,7 @@ document.addEventListener('click', e => {
   else if (b.dataset.person !== undefined) togglePerson(b.dataset.slot, b.dataset.person);
   else if (b.dataset.cant) cantMake(b.dataset.cant);
   else if (b.dataset.status) setStatus(b.dataset.slot, b.dataset.status);
+  else if (b.dataset.jump) jump(b.dataset.jump);
 });
 
 let toastTimer;
