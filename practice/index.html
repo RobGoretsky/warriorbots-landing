@@ -96,6 +96,7 @@ button { font: inherit; cursor: pointer; }
 .actions { display: flex; gap: 4px; margin-left: auto; }
 
 .toast { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 10px; font-weight: 700; max-width: 90vw; }
+.saving { position: fixed; right: 12px; top: 12px; background: var(--panel); color: var(--muted); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; font-size: .85rem; }
 .toast.err { background: var(--no); color: #fff; }
 .preview { background: var(--ok-wash); color: var(--ok); border-radius: 10px; padding: 8px 12px; font-size: .9rem; }
 [hidden] { display: none !important; }
@@ -132,6 +133,7 @@ button { font: inherit; cursor: pointer; }
   </section>
 </div>
 <div class="toast" id="toast" hidden></div>
+<div class="saving" id="saving" hidden>Saving…</div>
 
 <script>
 // ---- config ---------------------------------------------------------------
@@ -176,23 +178,67 @@ const answerable = slot => ['practice', 'regular'].includes(slotOf(slot).kind ||
 const icon = slot => { const i = slotOf(slot).icon; return !i ? '' : i === 'warrior' ? `<img class="logo" src="${LOGO}" alt="Warriors">` : `<span class="icon">${esc(i)}</span>`; };
 
 // ---- backend --------------------------------------------------------------
+// Taps are optimistic: a change shows on screen at once, then saves go to the
+// sheet one at a time in the background (Apps Script takes 2-5 s per request).
+// Each request carries the slot's full answer, so the last one to land wins and
+// matches the screen. Server state replaces local state only when the queue is
+// empty, so a slow save or a refresh never flickers taps back off.
+const queue = [];
+let saving = false;
+
 async function load() {
-  S = API_URL ? await (await fetch(API_URL)).json() : Preview.state();
+  if (saving || queue.length) return;
+  const s = API_URL ? await (await fetch(API_URL)).json() : Preview.state();
+  if (saving || queue.length) return;
+  S = s;
   render();
 }
 
-async function send(req) {
-  try {
-    const res = API_URL
-      ? await (await fetch(API_URL, { method: 'POST', body: JSON.stringify(req) })).json()   // text/plain: no CORS preflight
-      : Preview.apply(req);
-    if (res.error) throw new Error(res.error);
-    S = res;
-    render();
-  } catch (e) {
-    toast(e.message || 'Something went wrong — try again.', true);
-    load();
+function send(req) {
+  const err = applyChange(S, req);
+  if (err) return toast(err, true);
+  render();
+  queue.push(req);
+  pump();
+}
+
+async function pump() {
+  if (saving) return;
+  saving = true;
+  $('#saving').hidden = false;
+  let latest = null, failed = false;
+  while (queue.length) {
+    const req = queue.shift();
+    try {
+      const res = API_URL
+        ? await (await fetch(API_URL, { method: 'POST', body: JSON.stringify(req) })).json()   // text/plain: no CORS preflight
+        : Preview.apply(req);
+      if (res.error) throw new Error(res.error);
+      latest = res;
+    } catch (e) {
+      failed = true;
+      toast(e.message || "Couldn't save. Check your connection and try again.", true);
+    }
   }
+  saving = false;
+  $('#saving').hidden = true;
+  if (failed) load();                       // resync with what the sheet actually has
+  else if (latest) { S = latest; render(); }
+}
+
+/** Apply one change to a state object in place (same rules as Code.gs). Returns an error message or ''. */
+function applyChange(s, req) {
+  if (req.action === 'respond') {
+    s.responses = s.responses.filter(r => !(r.slot === req.slot && r.family === req.family))
+      .concat({ slot: req.slot, family: req.family, people: req.people });
+  } else if (req.action === 'setStatus') {
+    s.slots.find(x => x.slot === req.slot).status = req.status;
+  } else if (req.action === 'addAdult') {
+    const f = s.families.find(x => x.id === req.family);
+    if (!f.mayAddAdult) return `${f.name} can't add adults here — ask Rob.`;
+    if (!f.adults.concat(f.kids).includes(req.name)) f.adults.push(req.name);
+  }
+  return '';
 }
 
 // Preview mode mirrors Code.gs closely enough to click through the UI with no backend.
@@ -213,16 +259,8 @@ const Preview = {
   state() { return JSON.parse(localStorage.getItem('practice.preview') || JSON.stringify(SAMPLE)); },
   apply(req) {
     const s = this.state();
-    if (req.action === 'respond') {
-      s.responses = s.responses.filter(r => !(r.slot === req.slot && r.family === req.family))
-        .concat({ slot: req.slot, family: req.family, people: req.people });
-    } else if (req.action === 'setStatus') {
-      s.slots.find(x => x.slot === req.slot).status = req.status;
-    } else if (req.action === 'addAdult') {
-      const f = s.families.find(x => x.id === req.family);
-      if (!f.mayAddAdult) return { error: `${f.name} can't add adults here — ask Rob.` };
-      if (!f.adults.concat(f.kids).includes(req.name)) f.adults.push(req.name);
-    }
+    const err = applyChange(s, req);
+    if (err) return { error: err };
     localStorage.setItem('practice.preview', JSON.stringify(s));
     return s;
   },
@@ -323,6 +361,8 @@ function toast(msg, err) {
   const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.hidden = false;
   clearTimeout(toastTimer); toastTimer = setTimeout(() => { t.hidden = true; }, 4000);
 }
+
+window.addEventListener('beforeunload', e => { if (saving || queue.length) e.preventDefault(); });
 
 // Other families' taps show up within a minute, or as soon as you come back to the tab.
 document.addEventListener('visibilitychange', () => { if (!document.hidden) load(); });
