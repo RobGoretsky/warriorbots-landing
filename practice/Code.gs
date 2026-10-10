@@ -11,7 +11,10 @@
  * types the families and the free days in by hand, and a hand edit is the
  * truth on the next refresh.
  *   Families  — id | name | adults | kids | may_add_adult | updated_at
- *   Slots     — slot | time | status | updated_at       (only days the basement is free; status: open | confirmed | cancelled)
+ *   Slots     — slot | time | kind | icon | note | status | updated_at
+ *               kind: practice (families answer; status open | confirmed | cancelled), regular (the standing
+ *               Saturday practice; families answer), event (scrimmage etc.; shown only), off (a marked
+ *               no-practice day; shown only). Blank kind = practice. icon: an emoji, or "warrior" for the team logo.
  *   Responses — slot | family_id | people | updated_at  (one row per slot × family)
  *
  * The page can't add or edit families; the only family change it can make is
@@ -21,10 +24,11 @@
  */
 
 const STATUSES = ['open', 'confirmed', 'cancelled'];
+const ANSWERABLE = ['practice', 'regular'];
 
 const TABS = {
   Families: ['id', 'name', 'adults', 'kids', 'may_add_adult', 'updated_at'],
-  Slots: ['slot', 'time', 'status', 'updated_at'],
+  Slots: ['slot', 'time', 'kind', 'icon', 'note', 'status', 'updated_at'],
   Responses: ['slot', 'family_id', 'people', 'updated_at'],
 };
 
@@ -103,6 +107,7 @@ const truthy_ = v => String(v).toUpperCase() === 'TRUE';
 function slot_(slot) {
   const s = read_('Slots').find(r => r.slot === String(slot));
   if (!s) throw new Error('No practice on ' + slot);
+  s.kind = s.kind || 'practice';
   return s;
 }
 
@@ -119,7 +124,9 @@ function state_() {
     families: read_('Families').map(r => ({
       id: r.id, name: r.name, adults: list_(r.adults), kids: list_(r.kids), mayAddAdult: truthy_(r.may_add_adult),
     })),
-    slots: read_('Slots').map(r => ({ slot: r.slot, time: r.time, status: r.status || 'open' }))
+    slots: read_('Slots').map(r => ({
+      slot: r.slot, time: r.time, kind: r.kind || 'practice', icon: r.icon, note: r.note, status: r.status || 'open',
+    }))
       .sort((a, b) => a.slot.localeCompare(b.slot)),
     responses: read_('Responses').map(r => ({ slot: r.slot, family: r.family_id, people: list_(r.people) })),
   };
@@ -127,7 +134,8 @@ function state_() {
 
 /** Who from one family can make one session (people = names; anyone not in the family is dropped). */
 function respond_(req) {
-  slot_(req.slot);
+  const s = slot_(req.slot);
+  if (!ANSWERABLE.includes(s.kind)) throw new Error('Nothing to answer on ' + s.slot);
   const fam = family_(req.family);
   const members = list_(fam.adults).concat(list_(fam.kids));
   const people = names_(req.people).filter(p => members.includes(p));
@@ -136,8 +144,9 @@ function respond_(req) {
 
 function setStatus_(req) {
   const s = slot_(req.slot);
+  if (s.kind !== 'practice') throw new Error('Only practices can be confirmed or called off.');
   if (!STATUSES.includes(req.status)) throw new Error('Bad status: ' + req.status);
-  upsert_('Slots', [s.slot, s.time, req.status], 1);
+  upsert_('Slots', [s.slot, s.time, s.kind, s.icon, s.note, req.status], 1);
 }
 
 /** Add a supervising adult to a family that's allowed to (may_add_adult). Adding an existing name is a no-op. */

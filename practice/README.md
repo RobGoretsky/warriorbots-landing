@@ -1,6 +1,6 @@
 # Robotics Practice Scheduler
 
-Doodle-style picker for practices in the Goretsky basement before the Nov 22 competition. Rob lists only the days the basement is free. Each family picks itself from a fixed list (no sign-in) and taps which supervising adults and kids can make each session. A session is a **go** with at least one supervising adult and at least two kids (three or more shows as the better option). Anyone can **Confirm** or **Call off** a session; the top of the page lists confirmed sessions, the best open options, and who hasn't answered.
+Doodle-style picker for practices in the Goretsky basement before the Nov 21 qualifier. Rob lists only the days the basement is free. Each family picks itself from a fixed list (no sign-in) and taps which supervising adults and kids can make each session. A session is a **go** with at least one supervising adult and at least two kids (three or more shows as the better option). Anyone can **Confirm** or **Call off** a session; the top of the page lists confirmed sessions, the best open options, and who hasn't answered.
 
 Live at `https://warriorbots.ai/practice/` (GitHub Pages, this repo). `noindex`, unlinked from the landing page.
 
@@ -18,7 +18,7 @@ Tabs are created on the first request. Families and days are typed in by hand; t
 | Tab | Columns | Who writes it |
 |---|---|---|
 | `Families` | `id` (short, lowercase), `name`, `adults` (supervisors only, comma separated), `kids`, `may_add_adult` (TRUE lets that family add a supervising parent from the page) | Rob |
-| `Slots` | `slot` (YYYY-MM-DD), `time` (e.g. `6:00 PM`), `status` (blank = open, or `confirmed` / `cancelled`) | Rob adds rows; the page sets `status` |
+| `Slots` | `slot` (YYYY-MM-DD), `time` (e.g. `6:00–7:30 PM`), `kind` (`practice` families answer and anyone can confirm or call off · `regular` standing Saturday practice, families answer · `event` scrimmage etc., shown only · `off` marked no-practice day, shown only; blank = practice), `icon` (an emoji, or `warrior` for the team logo), `note` (e.g. `Giants at Eagles, 1:00 PM`), `status` (blank = open, or `confirmed` / `cancelled`) | Rob adds rows; the page sets `status` |
 | `Responses` | `slot`, `family_id`, `people` | the page |
 
 Remove a day by deleting its `Slots` row (any responses for it are then ignored).
@@ -34,5 +34,5 @@ Redeploy after a `Code.gs` change: **Deploy → Manage deployments → edit → 
 
 ## Changing things later
 
-- Thresholds: `MIN_KIDS`, `GREAT_KIDS`, `MIN_ADULTS` in `index.html`. Day notes: `NOTES`.
+- Thresholds: `MIN_KIDS`, `GREAT_KIDS`, `MIN_ADULTS` in `index.html`. Icons and notes per day: the `Slots` tab.
 - Reset answers: delete the data rows in `Responses` and clear `status` in `Slots`.

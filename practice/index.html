@@ -72,6 +72,13 @@ button { font: inherit; cursor: pointer; }
 .slot.ok { border-left-color: var(--ok); }
 .slot.short { border-left-color: var(--line); }
 .slot.cancelled { opacity: .6; }
+.slot.regular { border-left-color: var(--columbia); }
+.slot.event { border-left-color: var(--accent); background: var(--wash); }
+.slot.off { border-left-color: var(--line); background: transparent; border-style: dashed; padding: 8px 14px; }
+.badge.regular, .badge.event { background: var(--accent); color: var(--accent-ink); }
+.badge.off { background: var(--past); color: var(--muted); }
+.logo { width: 26px; height: 26px; object-fit: contain; align-self: center; }
+.icon { font-size: 1.2rem; align-self: center; }
 .slot.past { background: var(--past); opacity: .7; }
 .slot.confirmed { box-shadow: 0 0 0 2px var(--go) inset; }
 .slot-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; }
@@ -102,7 +109,7 @@ button { font: inherit; cursor: pointer; }
     <div class="facts">
       <span>In the <b>Goretsky</b> basement</span>
       <span>Only days the basement is free are listed</span>
-      <span>Competition <b>Nov 22</b></span>
+      <span>Qualifier <b>Sat Nov 21</b></span>
     </div>
     <p class="sub">Pick your family, then tap who can make each session. A practice is a <b>go</b> when at least <b>one supervising adult</b> and at least <b>two kids</b> can come (three or more is ideal). Not everyone has to make every one.</p>
     <div class="preview" id="preview" hidden>Preview mode: no backend configured, so changes are saved only in this browser.</div>
@@ -130,7 +137,7 @@ button { font: inherit; cursor: pointer; }
 // ---- config ---------------------------------------------------------------
 // The Apps Script web app /exec URL (see README.md). Empty = preview mode on localStorage.
 const API_URL = '';
-const NOTES = { '2026-11-15': 'Don Bosco Scrimmage is this day' };
+const LOGO = '../images/warrior-logo.png';   // icon "warrior" in the sheet
 const MIN_KIDS = 2, GREAT_KIDS = 3, MIN_ADULTS = 1;
 const COLORS = ['#E0662E', '#6D5BD0', '#1E9E8C', '#D23F86', '#D9A21B', '#4F7FAA', '#8C6A4A'];
 
@@ -145,7 +152,7 @@ const today = new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD in local t
 
 const fmt = (slot, opts) => new Date(slot + 'T12:00:00Z').toLocaleDateString('en-US', { timeZone: 'UTC', ...opts });
 const slotOf = slot => S.slots.find(s => s.slot === slot) || {};
-const when = slot => `${fmt(slot, { weekday: 'short', month: 'short', day: 'numeric' })} · ${slotOf(slot).time || ''}`;
+const when = slot => [fmt(slot, { weekday: 'short', month: 'short', day: 'numeric' }), slotOf(slot).time].filter(Boolean).join(' · ');
 const famColor = id => COLORS[Math.max(0, S.families.findIndex(f => f.id === id)) % COLORS.length];
 const response = (slot, fam) => S.responses.find(r => r.slot === slot && r.family === fam);
 
@@ -160,11 +167,13 @@ function tally(slot) {
   const need = [];
   if (adults.length < MIN_ADULTS) need.push('an adult');
   if (kids.length < MIN_KIDS) need.push(`${MIN_KIDS - kids.length} more kid${MIN_KIDS - kids.length > 1 ? 's' : ''}`);
-  const st = slotOf(slot).status || 'open';
-  const level = st !== 'open' ? st : need.length ? 'short' : kids.length >= GREAT_KIDS ? 'great' : 'ok';
+  const st = slotOf(slot).status || 'open', kind = slotOf(slot).kind || 'practice';
+  const level = kind !== 'practice' ? kind : st !== 'open' ? st : need.length ? 'short' : kids.length >= GREAT_KIDS ? 'great' : 'ok';
   return { adults, kids, waiting, need, level, status: st };
 }
-const LABEL = { confirmed: 'Confirmed', cancelled: 'Called off', great: 'Go: 3+ kids', ok: 'Go: 2 kids' };
+const LABEL = { confirmed: 'Confirmed', cancelled: 'Called off', great: 'Go: 3+ kids', ok: 'Go: 2 kids', regular: 'Regular practice', event: 'Event', off: 'No practice' };
+const answerable = slot => ['practice', 'regular'].includes(slotOf(slot).kind || 'practice');
+const icon = slot => { const i = slotOf(slot).icon; return !i ? '' : i === 'warrior' ? `<img class="logo" src="${LOGO}" alt="Warriors">` : `<span class="icon">${esc(i)}</span>`; };
 
 // ---- backend --------------------------------------------------------------
 async function load() {
@@ -193,7 +202,11 @@ const SAMPLE = {
     { id: 'smith', name: 'Smith', adults: ['Ann', 'Bob'], kids: ['Alex'], mayAddAdult: false },
     { id: 'jones', name: 'Jones', adults: [], kids: ['Sam', 'Kim'], mayAddAdult: true },
   ],
-  slots: [{ slot: '2026-10-15', time: '6:00 PM', status: 'open' }, { slot: '2026-10-18', time: '1:00 PM', status: 'open' }],
+  slots: [
+    { slot: '2026-10-15', time: '6:00–7:30 PM', kind: 'practice', status: 'open' },
+    { slot: '2026-10-17', time: '10 AM–Noon', kind: 'regular', status: 'open' },
+    { slot: '2026-10-24', time: '', kind: 'event', icon: 'warrior', note: 'Sample scrimmage', status: 'open' },
+  ],
   responses: [],
 };
 const Preview = {
@@ -242,7 +255,8 @@ function render() {
   $('#add-adult').hidden = !(mine && mine.mayAddAdult);
 
   const all = S.slots.map(s => s.slot);
-  const upcoming = all.filter(s => s >= today);
+  const upcoming = all.filter(s => s >= today && answerable(s));
+  const events = all.filter(s => s >= today && slotOf(s).kind === 'event');
   const confirmed = upcoming.filter(s => tally(s).status === 'confirmed');
   const best = upcoming.filter(s => ['great', 'ok'].includes(tally(s).level))
     .sort((a, b) => tally(b).kids.length - tally(a).kids.length || a.localeCompare(b)).slice(0, 5);
@@ -251,6 +265,7 @@ function render() {
     !all.length ? '<div>No practice days posted yet.</div>'
       : confirmed.length ? `<div><b>Confirmed (${confirmed.length}):</b><ul>${confirmed.map(s => `<li>${when(s)}, ${tally(s).kids.length} kids</li>`).join('')}</ul></div>`
       : '<div>Nothing confirmed yet.</div>',
+    events.length ? `<div><b>Events:</b><ul>${events.map(s => `<li>${when(s)}: ${esc(slotOf(s).note || '')}</li>`).join('')}</ul></div>` : '',
     best.length ? `<div><b>Best open options:</b><ul>${best.map(s => `<li>${when(s)}: ${esc(tally(s).kids.join(', '))} with ${esc(tally(s).adults.join(', '))}</li>`).join('')}</ul></div>` : '',
     notYet.length && all.length ? `<div><b>Haven't filled anything in:</b> ${notYet.map(f => esc(f.name)).join(', ')}</div>` : '',
   ].join('');
@@ -260,15 +275,22 @@ function render() {
     const d = new Date(slot + 'T00:00:00Z'), mon = new Date(d); mon.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
     const wk = mon.toISOString().slice(0, 10);
     if (wk !== week) { week = wk; html += `<h3>Week of ${fmt(wk, { month: 'short', day: 'numeric' })}</h3>`; }
-    const t = tally(slot), past = slot < today;
+    const t = tally(slot), past = slot < today, sl = slotOf(slot);
+    if (!answerable(slot)) {
+      html += `<div class="slot ${t.level}${past ? ' past' : ''}"><div class="slot-head">${icon(slot)}
+        <span class="when">${when(slot)}</span><span class="badge ${t.level}">${LABEL[t.level]}</span>
+        ${sl.note ? `<span class="note">${esc(sl.note)}</span>` : ''}</div></div>`;
+      continue;
+    }
     const badge = LABEL[t.level] || `Needs ${t.need.join(', ')}`;
     const r = mine && response(slot, mine.id);
     html += `<div class="slot ${t.level}${past ? ' past' : ''}">
       <div class="slot-head">
-        <span class="when">${when(slot)}</span>
+        ${icon(slot)}<span class="when">${when(slot)}</span>
         <span class="badge ${t.level}">${esc(badge)}</span>
-        ${NOTES[slot] ? `<span class="note">${esc(NOTES[slot])}</span>` : ''}
-        ${past ? '' : `<span class="actions">${
+        ${sl.kind === 'regular' && t.need.length ? `<span class="badge short">Needs ${esc(t.need.join(', '))}</span>` : ''}
+        ${sl.note ? `<span class="note">${esc(sl.note)}</span>` : ''}
+        ${past || sl.kind !== 'practice' ? '' : `<span class="actions">${
           t.status === 'open' ? `<button class="btn quiet" data-status="confirmed" data-slot="${slot}">Confirm</button><button class="btn quiet" data-status="cancelled" data-slot="${slot}">Call off</button>`
           : `<button class="btn quiet" data-status="open" data-slot="${slot}">Reopen</button>`}</span>`}
       </div>
