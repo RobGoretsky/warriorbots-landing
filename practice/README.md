@@ -1,8 +1,8 @@
-# Robotics Practice Scheduler
+# Capybara Warriors Practice Scheduler
 
-Doodle-style picker for practices in the Goretsky basement before the Nov 21 qualifier. Rob lists only the days the basement is free. Each family picks itself from a fixed list (no sign-in) and taps which supervising adults and kids can make each session. A session is a **go** with at least one supervising adult and at least two kids (three or more shows as the better option). Anyone can **Confirm** or **Call off** a session; the top of the page lists confirmed sessions, the best open options, and who hasn't answered.
+Doodle-style picker for the Capybara Warriors (FLL Founders team, Waldwick Warriors Robotics) practices in the Goretsky basement before the Nov 21 qualifier. Rob lists only the days the basement is free. Each family picks itself from a fixed list (no sign-in) and taps which supervising adults and kids can make each session. A session is a **go** with at least one supervising adult and at least two kids (three or more shows as the better option). Anyone can **Confirm** or **Call off** a session; the top of the page lists confirmed sessions, the best open options, and who hasn't answered.
 
-Live at `https://warriorbots.ai/practice/` (GitHub Pages, this repo). `noindex`, unlinked from the landing page.
+Live at `https://warriorbots.ai/practice/` (GitHub Pages, this repo). `noindex`, unlinked from the landing page. Not a WarriorBots page: it lives here only because this repo is already on GitHub Pages.
 
 **Why GitHub Pages plus Apps Script:** Pages can't store anything, and claude.ai artifact storage would make every parent sign in. A Google Sheet behind an Apps Script web app is the same backend as the Ramapo scrimmage signup (`claude-workspace/fll/scrimmage-scheduler/`): free, no login for parents, and the sheet is the admin console. Fix a row by hand and that's the truth on the next refresh.
 
